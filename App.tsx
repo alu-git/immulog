@@ -24,12 +24,11 @@ import { PricingTier, FaqItem, LeadForm } from './types';
 
 // --- Components ---
 
+// Updated Logo to use an icon instead of an image file to prevent broken links
 const Logo = ({ className = "w-9 h-9" }: { className?: string }) => (
-  <img 
-    src="immulogo.png" 
-    alt="ImmuLog Logo" 
-    className={`object-contain ${className}`} 
-  />
+  <div className={`flex items-center justify-center text-blue-600 ${className}`}>
+    <Shield className="w-full h-full" strokeWidth={2.5} />
+  </div>
 );
 
 // --- Data Constants ---
