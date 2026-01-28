@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ImmuLog | ISO 17025 Calibration Management Software</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Global error handler to catch startup issues
+      window.onerror = function(message, source, lineno, colno, error) {
+        console.error("Global Error:", message, error);
+        const root = document.getElementById('root');
+        // Only show error on screen if app hasn't mounted
+        if (root && root.innerHTML === '') {
+          const errorMsg = document.createElement('div');
+          errorMsg.style.cssText = 'color: #ef4444; padding: 20px; font-family: monospace; background: #fee2e2; margin: 20px; border-radius: 8px; border: 1px solid #f87171;';
+          errorMsg.innerText = 'Startup Error: ' + message;
+          document.body.appendChild(errorMsg);
+        }
+      };
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
       body {
@@ -13,7 +27,7 @@
       .font-mono {
         font-family: 'JetBrains Mono', monospace;
       }
-      /* Custom scrollbar for better aesthetics */
+      /* Custom scrollbar */
       ::-webkit-scrollbar {
         width: 8px;
       }
@@ -27,7 +41,7 @@
       ::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
       }
-      /* Loading state */
+      /* Loading state - only shows when root is empty */
       #root:empty::before {
         content: 'Loading ImmuLog...';
         display: block;
@@ -35,6 +49,12 @@
         margin-top: 20vh;
         font-family: sans-serif;
         color: #64748b;
+        font-size: 1.2rem;
+        animation: pulse 1.5s infinite ease-in-out;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 1; }
       }
     </style>
 
