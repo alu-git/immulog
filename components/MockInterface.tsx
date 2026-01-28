@@ -1,5 +1,4 @@
 import React from 'react';
-import { QrCode, Camera, CheckCircle, FileText, UploadCloud, AlertCircle } from 'lucide-react';
 
 export const MockInterface: React.FC = () => {
   return (
