@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   CheckCircle, 
   FileCheck, 
@@ -16,20 +16,64 @@ import {
   Search,
   AlertTriangle,
   Play,
-  ArrowRight
+  ArrowRight,
+  HelpCircle
 } from 'lucide-react';
 import { Button } from './components/Button';
 import { MockInterface } from './components/MockInterface';
 import { PricingTier, FaqItem, LeadForm } from './types';
 
-// --- Components ---
+// --- Utility Components ---
 
-// Updated Logo to use an icon instead of an image file to prevent broken links
+// Updated Logo
 const Logo = ({ className = "w-9 h-9" }: { className?: string }) => (
   <div className={`flex items-center justify-center text-blue-600 ${className}`}>
     <Shield className="w-full h-full" strokeWidth={2.5} />
   </div>
 );
+
+// Reveal Animation Component
+const RevealOnScroll = ({ children, className = "", delay = 0 }: { children: React.ReactNode, className?: string, delay?: number }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "50px"
+      }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
+    };
+  }, []);
+
+  const transitionDelay = `${delay}ms`;
+
+  return (
+    <div 
+      ref={ref} 
+      className={`transition-all duration-1000 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} ${className}`}
+      style={{ transitionDelay }}
+    >
+      {children}
+    </div>
+  );
+};
 
 // --- Data Constants ---
 
@@ -84,11 +128,11 @@ const FAQS: FaqItem[] = [
 const AuditReportPreview = () => (
   <div className="relative group perspective-1000">
      {/* Abstract background elements */}
-    <div className="absolute top-4 -right-4 w-full h-full bg-slate-800 rounded-sm border border-slate-700 opacity-50 transform rotate-2"></div>
-    <div className="absolute top-2 -right-2 w-full h-full bg-slate-800 rounded-sm border border-slate-600 opacity-70 transform rotate-1"></div>
+    <div className="absolute top-4 -right-4 w-full h-full bg-slate-800 rounded-sm border border-slate-700 opacity-50 transform rotate-2 transition-transform duration-500 group-hover:rotate-3 group-hover:translate-x-1"></div>
+    <div className="absolute top-2 -right-2 w-full h-full bg-slate-800 rounded-sm border border-slate-600 opacity-70 transform rotate-1 transition-transform duration-500 group-hover:rotate-2 group-hover:translate-x-1"></div>
     
     {/* Main Paper */}
-    <div className="relative bg-white w-full max-w-lg mx-auto h-[600px] shadow-2xl rounded-sm overflow-hidden flex flex-col transform transition-transform duration-500 hover:-translate-y-2">
+    <div className="relative bg-white w-full max-w-lg mx-auto h-[600px] shadow-2xl rounded-sm overflow-hidden flex flex-col transform transition-all duration-500 hover:-translate-y-2 hover:shadow-blue-900/20">
       
       {/* Paper Header */}
       <div className="h-16 border-b-2 border-slate-900 mx-8 mt-8 flex justify-between items-end pb-2">
@@ -222,7 +266,7 @@ function App() {
       </div>
 
       {/* 0. Sticky Top Bar */}
-      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             {/* Logo */}
@@ -251,7 +295,7 @@ function App() {
 
         {/* Mobile Nav */}
         {isMobileMenuOpen && (
-          <div className="md:hidden bg-white border-b border-slate-200 px-4 py-4 space-y-4 shadow-lg absolute w-full">
+          <div className="md:hidden bg-white border-b border-slate-200 px-4 py-4 space-y-4 shadow-lg absolute w-full animate-fade-up">
             <button onClick={() => scrollToSection('features')} className="block w-full text-left font-medium text-slate-700">Features</button>
             <button onClick={() => scrollToSection('pricing')} className="block w-full text-left font-medium text-slate-700">Pricing</button>
             <Button fullWidth onClick={() => scrollToSection('pilot')}>Join Pilot</Button>
@@ -266,115 +310,148 @@ function App() {
             <div className="space-y-8 text-center lg:text-left">
               
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold uppercase tracking-wide mx-auto lg:mx-0">
-                <Shield size={12} />
-                <span>ISO 17025 Traceability</span>
+              <div className="animate-fade-up">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold uppercase tracking-wide mx-auto lg:mx-0">
+                  <Shield size={12} />
+                  <span>ISO 17025 Traceability</span>
+                </div>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">
-                ISO 17025 Compliance.<br/>
-                <span className="text-blue-600 relative inline-block">Zero Binders.
-                  <svg className="absolute w-full h-3 -bottom-1 left-0 text-blue-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" /></svg>
+              <h1 className="animate-fade-up delay-100 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">
+                Audit-Ready Records.<br/>
+                <span className="text-blue-600 relative inline-block">
+                  Zero Binders.
+                  {/* The Animated Marker SVG */}
+                  <svg 
+                    className="absolute w-[105%] h-3 -bottom-1 -left-1 text-blue-200 -z-10" 
+                    viewBox="0 0 100 10" 
+                    preserveAspectRatio="none"
+                  >
+                    {/* pathLength="1" allows us to normalize dasharray to 1 in CSS */}
+                    <path 
+                      d="M0 5 Q 50 10 100 5" 
+                      stroke="currentColor" 
+                      strokeWidth="8" 
+                      fill="none" 
+                      pathLength="1"
+                      className="marker-path"
+                    />
+                  </svg>
                 </span>
               </h1>
-              <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                ImmuLog replaces risky Excel sheets and paper logs with a <span className="font-semibold text-slate-900">secure, immutable, and audit-ready</span> digital registry.
+              
+              <p className="animate-fade-up delay-200 text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                ImmuLog replaces physical binders with a secure digital registry, ensuring your equipment records are always immutable, traceable, and ready for inspection.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Button size="lg" onClick={() => scrollToSection('pilot')} className="gap-2 shadow-blue-500/25">
+              <div className="animate-fade-up delay-300 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Button size="lg" onClick={() => scrollToSection('pilot')} className="gap-2 shadow-blue-500/25 transition-transform hover:scale-105 active:scale-95">
                   Join Pilot Waitlist <ArrowRight size={18} />
                 </Button>
-                <Button size="lg" variant="secondary" className="gap-2">
+                <Button size="lg" variant="secondary" className="gap-2 transition-transform hover:scale-105 active:scale-95">
                   <Play size={18} fill="currentColor" className="text-slate-400" /> Watch 45s Demo
                 </Button>
               </div>
 
               {/* Trust Chips */}
-              <div className="pt-6 border-t border-slate-100 flex flex-wrap justify-center lg:justify-start gap-x-8 gap-y-4 text-sm font-medium text-slate-500">
-                <div className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> ALCOA+ Aligned</div>
-                <div className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Void-Safe Audit Trail</div>
+              <div className="animate-fade-up delay-500 pt-6 border-t border-slate-100 flex flex-wrap justify-center lg:justify-start gap-x-8 gap-y-4 text-sm font-medium text-slate-500">
+                <div className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> ALCOA+ Principles</div>
+                <div className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Zero "Quiet Edits"</div>
                 <div className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Instant Retrieval</div>
               </div>
             </div>
 
             {/* Hero Visual */}
-            <div className="relative flex justify-center lg:justify-end">
+            <div className="animate-fade-up delay-700 relative flex justify-center lg:justify-end">
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-100 rounded-full blur-[100px] -z-10 opacity-60"></div>
-              <MockInterface />
+              {/* Floating Animation Wrapper */}
+              <div className="animate-float">
+                <MockInterface />
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 2. The Problem */}
+      {/* 2. Audit Reality (Replaces The Problem) */}
       <section className="py-20 bg-slate-50 border-y border-slate-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Risk Management</h2>
-          <h3 className="text-3xl font-bold text-slate-900 mb-12">The hidden cost of "Good Enough."</h3>
+          <RevealOnScroll>
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Audit Reality</h2>
+            <h3 className="text-3xl font-bold text-slate-900 mb-12">Audits aren't the enemy. Chaos is.</h3>
+          </RevealOnScroll>
           
           <div className="grid md:grid-cols-3 gap-6 text-left">
             {/* Card 1: Search */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-red-200 transition-colors group">
-              <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-red-50 transition-colors">
-                <Search className="text-slate-600 group-hover:text-red-500" size={20} />
+            <RevealOnScroll delay={100}>
+              <div className="h-full bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-blue-200 hover:shadow-md transition-all duration-300 group">
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-50 transition-colors">
+                  <Search className="text-slate-600 group-hover:text-blue-500" size={20} />
+                </div>
+                <h4 className="font-bold text-slate-900 mb-2">Instant Retrieval</h4>
+                <p className="text-slate-600 text-sm leading-relaxed">Stop digging through physical binders or shared drives while the auditor waits. Search by asset tag and retrieve full history in seconds.</p>
               </div>
-              <h4 className="font-bold text-slate-900 mb-2">Retrieval Delays</h4>
-              <p className="text-slate-600 text-sm leading-relaxed">Auditors interpret delay as disorganization. Finding a 2022 cert in a shared drive shouldn't take 45 minutes.</p>
-            </div>
+            </RevealOnScroll>
             
-            {/* Card 2: Excel */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-orange-200 transition-colors group">
-              <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-orange-50 transition-colors">
-                <AlertTriangle className="text-slate-600 group-hover:text-orange-500" size={20} />
+            {/* Card 2: Integrity */}
+            <RevealOnScroll delay={200}>
+              <div className="h-full bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-red-200 hover:shadow-md transition-all duration-300 group">
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-red-50 transition-colors">
+                  <AlertTriangle className="text-slate-600 group-hover:text-red-500" size={20} />
+                </div>
+                <h4 className="font-bold text-slate-900 mb-2">Closed-Loop Actions</h4>
+                <p className="text-slate-600 text-sm leading-relaxed">Turn findings into finished tasks. Track corrective actions and voided entries without creating a paper trail nightmare.</p>
               </div>
-              <h4 className="font-bold text-slate-900 mb-2">Data Integrity Risks</h4>
-              <p className="text-slate-600 text-sm leading-relaxed">Excel cells are not immutable. Overwritten dates or deleted rows are a major red flag for data integrity audits.</p>
-            </div>
+            </RevealOnScroll>
 
-            {/* Card 3: LIMS */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-blue-200 transition-colors group">
-              <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-50 transition-colors">
-                <Database className="text-slate-600 group-hover:text-blue-500" size={20} />
+            {/* Card 3: Security */}
+            <RevealOnScroll delay={300}>
+              <div className="h-full bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-green-200 hover:shadow-md transition-all duration-300 group">
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-50 transition-colors">
+                  <Lock className="text-slate-600 group-hover:text-green-500" size={20} />
+                </div>
+                <h4 className="font-bold text-slate-900 mb-2">Data Integrity (ALCOA+)</h4>
+                <p className="text-slate-600 text-sm leading-relaxed">No quiet deletions. Every change is stamped, signed, and justified. Ready for ISO 17025 and regulatory defense.</p>
               </div>
-              <h4 className="font-bold text-slate-900 mb-2">Validation Fatigue</h4>
-              <p className="text-slate-600 text-sm leading-relaxed">Full LIMS suites require massive validation packages (IQ/OQ/PQ). ImmuLog offers a lightweight, focused alternative.</p>
-            </div>
+            </RevealOnScroll>
           </div>
 
-          <div className="mt-12 bg-white inline-block px-8 py-4 rounded-full border border-slate-200 shadow-sm">
-            <p className="text-lg font-medium text-slate-800">
-              "ImmuLog is the precise tool for calibration history. <span className="text-blue-600 font-bold">No bloat. Just compliance.</span>"
-            </p>
-          </div>
+          <RevealOnScroll delay={400}>
+            <div className="mt-12 bg-white inline-block px-8 py-4 rounded-full border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+              <p className="text-lg font-medium text-slate-800">
+                "We replace the <span className="text-red-600 font-bold">manual scramble</span> with <span className="text-blue-600 font-bold">instant proof</span>."
+              </p>
+            </div>
+          </RevealOnScroll>
         </div>
       </section>
 
-      {/* 3. How It Works */}
+      {/* 3. The Workflow (Replaces How It Works) */}
       <section id="features" className="py-24 bg-white relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900">Compliance in 4 Steps</h2>
-            <p className="text-slate-500 mt-2">Designed for the lab floor, validated for the auditor.</p>
-          </div>
+          <RevealOnScroll>
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold text-slate-900">Complete Traceability</h2>
+              <p className="text-slate-500 mt-2">Designed to answer every auditor question without hesitation.</p>
+            </div>
+          </RevealOnScroll>
 
           <div className="grid md:grid-cols-4 gap-6">
             {[
-              { icon: Database, title: "1. Registry", desc: "Centralize ID, serials, and calibration intervals.", color: "text-blue-600" },
-              { icon: Printer, title: "2. Tag Assets", desc: "Generate unique QR labels for every instrument.", color: "text-teal-600" },
-              { icon: Smartphone, title: "3. Scan to Log", desc: "Technicians scan & upload certs at the bench.", color: "text-indigo-600" },
+              { icon: Database, title: "1. Central Registry", desc: "Consolidate ID, serials, and intervals in one secure location.", color: "text-blue-600" },
+              { icon: Smartphone, title: "2. Scan to Verify", desc: "QR codes on instruments allow instant status checks.", color: "text-teal-600" },
+              { icon: History, title: "3. Attributable Logs", desc: "Unique logins only. No generic 'admin' users allowed.", color: "text-indigo-600" },
               { icon: Download, title: "4. Audit Export", desc: "Retrieve full history by date range instantly.", color: "text-purple-600" }
             ].map((step, idx) => (
-              <div key={idx} className="relative p-6 bg-slate-50 rounded-xl border border-slate-100 hover:shadow-lg transition-shadow duration-300">
-                <div className={`mb-4 ${step.color}`}>
-                   <step.icon size={32} strokeWidth={1.5} />
+              <RevealOnScroll key={idx} delay={idx * 150}>
+                <div className="relative p-6 bg-slate-50 rounded-xl border border-slate-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full">
+                  <div className={`mb-4 ${step.color}`}>
+                     <step.icon size={32} strokeWidth={1.5} />
+                  </div>
+                  <h3 className="text-slate-900 font-bold text-lg mb-2">{step.title}</h3>
+                  <p className="text-slate-600 text-sm leading-relaxed">{step.desc}</p>
                 </div>
-                <h3 className="text-slate-900 font-bold text-lg mb-2">{step.title}</h3>
-                <p className="text-slate-600 text-sm leading-relaxed">{step.desc}</p>
-                {idx < 3 && <div className="hidden md:block absolute top-1/2 -right-3 transform -translate-y-1/2 text-slate-300 z-10">
-                   <ChevronRight />
-                </div>}
-              </div>
+              </RevealOnScroll>
             ))}
           </div>
         </div>
@@ -389,44 +466,48 @@ function App() {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <div className="inline-block px-3 py-1 rounded bg-blue-900/50 border border-blue-700 text-blue-300 text-[10px] font-mono font-bold uppercase tracking-widest mb-6">
-                Audit Defense
-              </div>
-              <h2 className="text-3xl lg:text-4xl font-bold mb-6 leading-tight">The Audit Button: <br/>Proof in one click.</h2>
-              <p className="text-slate-300 text-lg mb-8 leading-relaxed font-light">
-                Generate an auditor-ready PDF by date range, instrument, location, or technician. Designed to meet <strong className="text-white">ISO 17025 Section 7.5 (Technical Records)</strong> requirements.
-              </p>
-              
-              <ul className="space-y-4 mb-8">
-                {[
-                  "Traceable Metadata (ID, Serial, Location)",
-                  "Immutable timestamped log entries",
-                  "Direct links to original certificates",
-                  "Void trail (Original + Reason + Replacement)"
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-slate-200">
-                    <div className="bg-green-500/10 p-1 rounded-full">
-                      <CheckCircle className="text-green-400 shrink-0" size={16} />
-                    </div>
-                    <span className="text-sm font-medium">{item}</span>
-                  </li>
-                ))}
-              </ul>
+            <RevealOnScroll>
+              <div>
+                <div className="inline-block px-3 py-1 rounded bg-blue-900/50 border border-blue-700 text-blue-300 text-[10px] font-mono font-bold uppercase tracking-widest mb-6">
+                  Audit Defense
+                </div>
+                <h2 className="text-3xl lg:text-4xl font-bold mb-6 leading-tight">The Audit Report: <br/>Proof in one click.</h2>
+                <p className="text-slate-300 text-lg mb-8 leading-relaxed font-light">
+                  Generate an auditor-ready PDF by date range, instrument, location, or technician. Designed to meet <strong className="text-white">ISO 17025 Section 7.5</strong> requirements without hesitation.
+                </p>
+                
+                <ul className="space-y-4 mb-8">
+                  {[
+                    "Traceable Metadata (ID, Serial, Location)",
+                    "Immutable timestamped log entries",
+                    "Direct links to original certificates",
+                    "Void trail (Original + Reason + Replacement)"
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-slate-200">
+                      <div className="bg-green-500/10 p-1 rounded-full">
+                        <CheckCircle className="text-green-400 shrink-0" size={16} />
+                      </div>
+                      <span className="text-sm font-medium">{item}</span>
+                    </li>
+                  ))}
+                </ul>
 
-              <Button 
-                variant="primary" 
-                size="lg" 
-                className="font-bold"
-                onClick={() => scrollToSection('pilot')}
-              >
-                Get Sample Report (Pilot)
-              </Button>
-            </div>
+                <Button 
+                  variant="primary" 
+                  size="lg" 
+                  className="font-bold transition-transform hover:scale-105"
+                  onClick={() => scrollToSection('pilot')}
+                >
+                  Get Sample Report (Pilot)
+                </Button>
+              </div>
+            </RevealOnScroll>
             
-            <div className="relative">
-              <AuditReportPreview />
-            </div>
+            <RevealOnScroll delay={200}>
+              <div className="relative">
+                <AuditReportPreview />
+              </div>
+            </RevealOnScroll>
           </div>
         </div>
       </section>
@@ -434,46 +515,30 @@ function App() {
       {/* 5. Compliance / Why Auditors Like It */}
       <section className="py-24 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-slate-900 mb-4">Built for ALCOA+ Principles</h2>
-          <p className="text-slate-500 mb-12 max-w-2xl mx-auto">We prioritized data integrity features that auditors check for first.</p>
+          <RevealOnScroll>
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Built for Transparency</h2>
+            <p className="text-slate-500 mb-12 max-w-2xl mx-auto">We prioritized the data integrity features that auditors check when they find an anomaly.</p>
+          </RevealOnScroll>
           
           <div className="grid sm:grid-cols-2 gap-8 text-left">
-            <div className="flex gap-4 p-4 rounded-lg hover:bg-slate-50 transition-colors">
-              <div className="bg-blue-100 p-3 rounded-lg h-fit text-blue-700">
-                <Lock size={24} />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900">Attributable & Legible</h4>
-                <p className="text-sm text-slate-600 mt-1 leading-relaxed">Every action is tied to a unique user ID and timestamp. No anonymous edits.</p>
-              </div>
-            </div>
-            <div className="flex gap-4 p-4 rounded-lg hover:bg-slate-50 transition-colors">
-              <div className="bg-blue-100 p-3 rounded-lg h-fit text-blue-700">
-                <History size={24} />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900">Original & Accurate</h4>
-                <p className="text-sm text-slate-600 mt-1 leading-relaxed">Original records are preserved. Corrections require a reason code (audit trail).</p>
-              </div>
-            </div>
-            <div className="flex gap-4 p-4 rounded-lg hover:bg-slate-50 transition-colors">
-              <div className="bg-blue-100 p-3 rounded-lg h-fit text-blue-700">
-                <FileCheck size={24} />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900">Contemporaneous</h4>
-                <p className="text-sm text-slate-600 mt-1 leading-relaxed">Mobile scanning encourages logging at the time of calibration, not batch-entering later.</p>
-              </div>
-            </div>
-            <div className="flex gap-4 p-4 rounded-lg hover:bg-slate-50 transition-colors">
-              <div className="bg-blue-100 p-3 rounded-lg h-fit text-blue-700">
-                <Download size={24} />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900">Available</h4>
-                <p className="text-sm text-slate-600 mt-1 leading-relaxed">Records are retrievable throughout the data lifecycle, independent of staff turnover.</p>
-              </div>
-            </div>
+            {[
+              { icon: Lock, title: "Attributable & Legible", text: "Every action is tied to a unique user ID and timestamp. No anonymous edits." },
+              { icon: History, title: "Original & Accurate", text: "Original records are preserved. Corrections require a reason code (audit trail)." },
+              { icon: FileCheck, title: "Contemporaneous", text: "Mobile scanning encourages logging at the time of calibration, not batch-entering later." },
+              { icon: Download, title: "Available", text: "Records are retrievable throughout the data lifecycle, independent of staff turnover." }
+            ].map((item, idx) => (
+              <RevealOnScroll key={idx} delay={idx * 100}>
+                <div className="flex gap-4 p-4 rounded-lg hover:bg-slate-50 transition-colors">
+                  <div className="bg-blue-100 p-3 rounded-lg h-fit text-blue-700">
+                    <item.icon size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900">{item.title}</h4>
+                    <p className="text-sm text-slate-600 mt-1 leading-relaxed">{item.text}</p>
+                  </div>
+                </div>
+              </RevealOnScroll>
+            ))}
           </div>
         </div>
       </section>
@@ -482,27 +547,32 @@ function App() {
       <section className="py-20 bg-slate-50 border-t border-slate-200">
          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
            <div className="grid md:grid-cols-2 gap-12">
-             <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
-               <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                 <CheckCircle className="text-green-500 fill-green-100" /> Ideal For
-               </h3>
-               <ul className="space-y-4 text-slate-600">
-                 <li className="flex gap-2 items-start"><span className="text-green-500 font-bold">✓</span> ISO 17025 Accredited Labs</li>
-                 <li className="flex gap-2 items-start"><span className="text-green-500 font-bold">✓</span> GLP/GMP Environments (Non-Validation)</li>
-                 <li className="flex gap-2 items-start"><span className="text-green-500 font-bold">✓</span> Biotech Startups (Seed to Series B)</li>
-                 <li className="flex gap-2 items-start"><span className="text-green-500 font-bold">✓</span> University Core Facilities</li>
-               </ul>
-             </div>
-             <div className="bg-slate-100 p-8 rounded-xl border border-slate-200 opacity-75 grayscale hover:grayscale-0 transition-all duration-500">
-               <h3 className="text-xl font-bold text-slate-500 mb-6 flex items-center gap-2">
-                 <X className="text-slate-400" /> Out of Scope
-               </h3>
-               <ul className="space-y-4 text-slate-500">
-                 <li className="flex gap-2 items-start"><span>•</span> Enterprise Pharma (Requires 21 CFR Part 11 Validation Pkg)</li>
-                 <li className="flex gap-2 items-start"><span>•</span> Supply Chain / Inventory Management</li>
-                 <li className="flex gap-2 items-start"><span>•</span> Clinical Patient Data (HIPAA)</li>
-               </ul>
-             </div>
+             <RevealOnScroll className="h-full">
+               <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 h-full">
+                 <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                   <CheckCircle className="text-green-500 fill-green-100" /> Ideal For
+                 </h3>
+                 <ul className="space-y-4 text-slate-600">
+                   <li className="flex gap-2 items-start"><span className="text-green-500 font-bold">✓</span> ISO 17025 Accredited Labs</li>
+                   <li className="flex gap-2 items-start"><span className="text-green-500 font-bold">✓</span> GLP/GMP Environments (Non-Validation)</li>
+                   <li className="flex gap-2 items-start"><span className="text-green-500 font-bold">✓</span> Biotech Startups (Seed to Series B)</li>
+                   <li className="flex gap-2 items-start"><span className="text-green-500 font-bold">✓</span> Labs tired of chasing binders</li>
+                 </ul>
+               </div>
+             </RevealOnScroll>
+
+             <RevealOnScroll delay={200} className="h-full">
+               <div className="bg-slate-100 p-8 rounded-xl border border-slate-200 opacity-75 grayscale hover:grayscale-0 transition-all duration-500 h-full">
+                 <h3 className="text-xl font-bold text-slate-500 mb-6 flex items-center gap-2">
+                   <X className="text-slate-400" /> Out of Scope
+                 </h3>
+                 <ul className="space-y-4 text-slate-500">
+                   <li className="flex gap-2 items-start"><span>•</span> Enterprise Pharma (Requires 21 CFR Part 11 Validation Pkg)</li>
+                   <li className="flex gap-2 items-start"><span>•</span> Supply Chain / Inventory Management</li>
+                   <li className="flex gap-2 items-start"><span>•</span> Clinical Patient Data (HIPAA)</li>
+                 </ul>
+               </div>
+             </RevealOnScroll>
            </div>
          </div>
       </section>
@@ -510,41 +580,46 @@ function App() {
       {/* 7. Pricing */}
       <section id="pricing" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900">Early Access Pricing</h2>
-            <p className="text-slate-600 mt-4">Secure founder pricing by joining the pilot today.</p>
-          </div>
+          <RevealOnScroll>
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold text-slate-900">Early Access Pricing</h2>
+              <p className="text-slate-600 mt-4">Secure founder pricing by joining the pilot today.</p>
+            </div>
+          </RevealOnScroll>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {PRICING_TIERS.map((tier, idx) => (
-              <div key={idx} className={`relative flex flex-col p-8 bg-white border rounded-2xl transition-transform duration-300 hover:-translate-y-1 ${tier.popular ? 'border-blue-600 shadow-xl z-10' : 'border-slate-200 shadow-sm'}`}>
-                {tier.popular && (
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wide px-3 py-1 rounded-full shadow-lg">
-                    Recommended
+              <RevealOnScroll key={idx} delay={idx * 150} className="h-full">
+                <div className={`relative flex flex-col p-8 bg-white border rounded-2xl transition-transform duration-300 hover:-translate-y-2 h-full ${tier.popular ? 'border-blue-600 shadow-xl z-10' : 'border-slate-200 shadow-sm'}`}>
+                  {tier.popular && (
+                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wide px-3 py-1 rounded-full shadow-lg">
+                      Recommended
+                    </div>
+                  )}
+                  <h3 className="text-lg font-bold text-slate-900">{tier.name}</h3>
+                  <div className="mt-4 mb-2 flex items-baseline gap-1">
+                    <span className="text-4xl font-extrabold text-slate-900 tracking-tight">{tier.price}</span>
+                    <span className="text-slate-500 text-sm font-medium">/month</span>
                   </div>
-                )}
-                <h3 className="text-lg font-bold text-slate-900">{tier.name}</h3>
-                <div className="mt-4 mb-2 flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-slate-900 tracking-tight">{tier.price}</span>
-                  <span className="text-slate-500 text-sm font-medium">/month</span>
+                  <p className="text-slate-500 text-sm mb-6 pb-6 border-b border-slate-100">{tier.description}</p>
+                  <ul className="space-y-4 mb-8 flex-1">
+                    {tier.features.map((feature, fIdx) => (
+                      <li key={fIdx} className="flex items-start gap-3 text-sm text-slate-700">
+                        <CheckCircle className="text-blue-500 shrink-0 mt-0.5" size={14} />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button 
+                    variant={tier.popular ? 'primary' : 'secondary'} 
+                    fullWidth
+                    onClick={() => scrollToSection('pilot')}
+                    className="transition-transform hover:scale-105 active:scale-95"
+                  >
+                    {tier.cta}
+                  </Button>
                 </div>
-                <p className="text-slate-500 text-sm mb-6 pb-6 border-b border-slate-100">{tier.description}</p>
-                <ul className="space-y-4 mb-8 flex-1">
-                  {tier.features.map((feature, fIdx) => (
-                    <li key={fIdx} className="flex items-start gap-3 text-sm text-slate-700">
-                      <CheckCircle className="text-blue-500 shrink-0 mt-0.5" size={14} />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <Button 
-                  variant={tier.popular ? 'primary' : 'secondary'} 
-                  fullWidth
-                  onClick={() => scrollToSection('pilot')}
-                >
-                  {tier.cta}
-                </Button>
-              </div>
+              </RevealOnScroll>
             ))}
           </div>
         </div>
@@ -553,13 +628,17 @@ function App() {
       {/* 8. FAQ */}
       <section className="py-20 bg-slate-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-slate-900 text-center mb-12">Technical & Compliance FAQ</h2>
+          <RevealOnScroll>
+            <h2 className="text-3xl font-bold text-slate-900 text-center mb-12">Technical & Compliance FAQ</h2>
+          </RevealOnScroll>
           <div className="grid gap-6">
             {FAQS.map((faq, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 hover:border-blue-200 transition-colors">
-                <h3 className="text-lg font-bold text-slate-900 mb-2">{faq.question}</h3>
-                <p className="text-slate-600 leading-relaxed text-sm">{faq.answer}</p>
-              </div>
+              <RevealOnScroll key={idx} delay={idx * 100}>
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 hover:border-blue-200 transition-colors">
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">{faq.question}</h3>
+                  <p className="text-slate-600 leading-relaxed text-sm">{faq.answer}</p>
+                </div>
+              </RevealOnScroll>
             ))}
           </div>
         </div>
@@ -568,81 +647,85 @@ function App() {
       {/* 9. Final CTA & Form */}
       <section id="pilot" className="py-24 bg-slate-900 text-white relative overflow-hidden">
         {/* Decorative Circles */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20"></div>
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-purple-600 rounded-full blur-3xl opacity-20"></div>
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-purple-600 rounded-full blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">Secure your pilot spot.</h2>
-          <p className="text-slate-300 mb-12 text-lg">Join the pilot to get founder pricing and secure your peace of mind before the next audit.</p>
+          <RevealOnScroll>
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">Secure your pilot spot.</h2>
+            <p className="text-slate-300 mb-12 text-lg">Join the pilot to get founder pricing and secure your peace of mind before the next audit.</p>
+          </RevealOnScroll>
           
-          <form onSubmit={handleFormSubmit} className="max-w-lg mx-auto bg-white/5 backdrop-blur-lg p-8 rounded-2xl shadow-2xl border border-white/10 text-left">
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Work Email</label>
-                <input 
-                  type="email" 
-                  name="email"
-                  required
-                  placeholder="you@lab.com"
-                  className="w-full px-4 py-3 rounded-lg bg-slate-900/50 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                  value={formState.email}
-                  onChange={handleInputChange}
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
+          <RevealOnScroll delay={200}>
+            <form onSubmit={handleFormSubmit} className="max-w-lg mx-auto bg-white/5 backdrop-blur-lg p-8 rounded-2xl shadow-2xl border border-white/10 text-left">
+              <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Lab Type</label>
-                  <select 
-                    name="labType"
-                    className="w-full px-4 py-3 rounded-lg bg-slate-900/50 border border-slate-600 text-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
-                    value={formState.labType}
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Work Email</label>
+                  <input 
+                    type="email" 
+                    name="email"
+                    required
+                    placeholder="you@lab.com"
+                    className="w-full px-4 py-3 rounded-lg bg-slate-900/50 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    value={formState.email}
                     onChange={handleInputChange}
-                  >
-                    <option value="" className="bg-slate-800">Select...</option>
-                    <option value="Biotech" className="bg-slate-800">Biotech</option>
-                    <option value="Academic" className="bg-slate-800">Academic</option>
-                    <option value="Contract" className="bg-slate-800">Contract Testing</option>
-                    <option value="Manufacturing" className="bg-slate-800">Manufacturing</option>
-                  </select>
+                  />
                 </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Lab Type</label>
+                    <select 
+                      name="labType"
+                      className="w-full px-4 py-3 rounded-lg bg-slate-900/50 border border-slate-600 text-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
+                      value={formState.labType}
+                      onChange={handleInputChange}
+                    >
+                      <option value="" className="bg-slate-800">Select...</option>
+                      <option value="Biotech" className="bg-slate-800">Biotech</option>
+                      <option value="Academic" className="bg-slate-800">Academic</option>
+                      <option value="Contract" className="bg-slate-800">Contract Testing</option>
+                      <option value="Manufacturing" className="bg-slate-800">Manufacturing</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1"># Instruments</label>
+                    <select 
+                      name="instrumentCount"
+                      className="w-full px-4 py-3 rounded-lg bg-slate-900/50 border border-slate-600 text-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
+                      value={formState.instrumentCount}
+                      onChange={handleInputChange}
+                    >
+                      <option value="" className="bg-slate-800">Select...</option>
+                      <option value="1-20" className="bg-slate-800">1-20</option>
+                      <option value="21-50" className="bg-slate-800">21-50</option>
+                      <option value="51-200" className="bg-slate-800">51-200</option>
+                      <option value="200+" className="bg-slate-800">200+</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1"># Instruments</label>
-                  <select 
-                    name="instrumentCount"
-                    className="w-full px-4 py-3 rounded-lg bg-slate-900/50 border border-slate-600 text-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
-                    value={formState.instrumentCount}
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Biggest Pain Point</label>
+                  <input 
+                    type="text" 
+                    name="painPoint"
+                    placeholder="e.g. Lost binders, Excel errors..."
+                    className="w-full px-4 py-3 rounded-lg bg-slate-900/50 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
+                    value={formState.painPoint}
                     onChange={handleInputChange}
-                  >
-                    <option value="" className="bg-slate-800">Select...</option>
-                    <option value="1-20" className="bg-slate-800">1-20</option>
-                    <option value="21-50" className="bg-slate-800">21-50</option>
-                    <option value="51-200" className="bg-slate-800">51-200</option>
-                    <option value="200+" className="bg-slate-800">200+</option>
-                  </select>
+                  />
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Biggest Pain Point</label>
-                <input 
-                  type="text" 
-                  name="painPoint"
-                  placeholder="e.g. Lost binders, Excel errors..."
-                  className="w-full px-4 py-3 rounded-lg bg-slate-900/50 border border-slate-600 text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
-                  value={formState.painPoint}
-                  onChange={handleInputChange}
-                />
+                <Button type="submit" size="lg" fullWidth className="mt-4 bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 transition-transform hover:scale-105 active:scale-95">
+                  Join Pilot Waitlist
+                </Button>
+                <p className="text-xs text-center text-slate-500 mt-4">
+                  We respect your inbox. No spam.
+                </p>
               </div>
-
-              <Button type="submit" size="lg" fullWidth className="mt-4 bg-blue-600 hover:bg-blue-500 text-white font-bold py-4">
-                Join Pilot Waitlist
-              </Button>
-              <p className="text-xs text-center text-slate-500 mt-4">
-                We respect your inbox. No spam.
-              </p>
-            </div>
-          </form>
+            </form>
+          </RevealOnScroll>
         </div>
       </section>
 
