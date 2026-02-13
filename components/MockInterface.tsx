@@ -82,7 +82,6 @@ export const MockInterface: React.FC<MockInterfaceProps> = ({ className = '', st
          {text}
          <MousePointer2 size={12} className="fill-white" />
       </div>
-      <div className={`w-2.5 h-2.5 bg-rose-600 rotate-45 absolute border-r border-b border-white ${position.includes('bottom') ? '-top-1.5 left-1/2 -translate-x-1/2' : '-bottom-1.5 left-1/2 -translate-x-1/2'}`}></div>
     </div>
   );
 
@@ -200,8 +199,8 @@ export const MockInterface: React.FC<MockInterfaceProps> = ({ className = '', st
                  </div>
                  <ChevronDown size={14} className={`text-slate-400 transition-transform ${expandedSection === 'risks' ? 'rotate-180' : ''}`} />
                  
-                 {/* GUIDE STEP 0 */}
-                 {guideStep === 0 && <GuideOverlay text="1. Tap to Review" position="-top-8 right-4" />}
+                 {/* GUIDE STEP 0 - REPOSITIONED */}
+                 {guideStep === 0 && <GuideOverlay text="1. Tap to Review" position="top-1/2 -translate-y-1/2 right-4" />}
               </button>
               
               {expandedSection === 'risks' && (
@@ -223,8 +222,8 @@ export const MockInterface: React.FC<MockInterfaceProps> = ({ className = '', st
                          -1d
                       </div>
 
-                      {/* GUIDE STEP 1 */}
-                      {guideStep === 1 && <GuideOverlay text="2. Select Item" position="-top-8 right-2" />}
+                      {/* GUIDE STEP 1 - REPOSITIONED */}
+                      {guideStep === 1 && <GuideOverlay text="2. Select Item" position="top-1/2 -translate-y-1/2 right-4" />}
                    </div>
                 </div>
               )}
@@ -317,8 +316,8 @@ export const MockInterface: React.FC<MockInterfaceProps> = ({ className = '', st
             >
               <FileText size={16} /> Log Event
             </button>
-            {/* GUIDE STEP 2 */}
-            {guideStep === 2 && <GuideOverlay text="3. Log New Event" position="-top-12 left-1/2 -translate-x-1/2" />}
+            {/* GUIDE STEP 2 - REPOSITIONED */}
+            {guideStep === 2 && <GuideOverlay text="3. Log New Event" position="bottom-full mb-2 left-1/2 -translate-x-1/2" />}
           </div>
           
           <div className="flex gap-2">
@@ -410,8 +409,8 @@ export const MockInterface: React.FC<MockInterfaceProps> = ({ className = '', st
             >
               Sign & Submit
             </button>
-            {/* GUIDE STEP 4 */}
-            {guideStep === 4 && <GuideOverlay text="4. Complete Log" position="-top-12 left-1/2 -translate-x-1/2" />}
+            {/* GUIDE STEP 4 - REPOSITIONED */}
+            {guideStep === 4 && <GuideOverlay text="4. Complete Log" position="bottom-full mb-2 left-1/2 -translate-x-1/2" />}
           </div>
        </div>
     </div>
